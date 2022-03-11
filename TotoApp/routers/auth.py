@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 
 
-from fastapi import Depends, HTTPException, status, APIRouter
+from fastapi import Depends, HTTPException, Request, status, APIRouter
 from pydantic import BaseModel
 from typing import Optional
 import models
@@ -14,9 +14,14 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 
 SECRET_KEY = "KlgH6AzYDeZeGwD288to79I3vTHT8w7"
 ALGORITHM = "HS256"
+
+templates = Jinja2Templates(directory="templates")
 
 class CreateUser(BaseModel):
     username: str
@@ -119,8 +124,17 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"token": token}
 
 
-# Exceptions
+@router.get("/", response_class=HTMLResponse)
+async def authentication_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
+
+@router.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+# Exceptions
 def get_user_exception():
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
